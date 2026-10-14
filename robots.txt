@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-success
+Disallow: /order-failed
+
+Sitemap: https://www.rajmaneagroproducts.com/api/sitemap.xml
