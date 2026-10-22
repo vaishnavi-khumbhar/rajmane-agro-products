@@ -5,9 +5,11 @@ import { useWishlist } from '@/context/WishlistContext';
 import { Overlay } from '@/components/ui/Overlay';
 import { useLang } from '@/context/LanguageContext';
 import { useUI } from '@/context/UIContext';
+import { useAuth } from '@/context/AuthContext';
 import { SITE } from '@/config/site';
 import { LanguageButtons } from './LanguageSelector';
-import { CATEGORY_LINKS, MAIN_LINKS } from './navLinks';
+import { MAIN_LINKS } from './navLinks';
+import { PRODUCTS } from '@/data/catalog';
 import { Logo } from './Logo';
 import { motion } from 'framer-motion';
 
@@ -17,17 +19,18 @@ const linkCls = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export function MobileNav() {
-  const { t } = useLang();
+  const { t, L } = useLang();
   const { menuOpen, setMenuOpen } = useUI();
   const close = () => setMenuOpen(false);
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
+  const { user } = useAuth();
   const quick = [
-    { to: '/login', label: t('nav.login'), icon: UserRound },
+    { to: '/login', label: user ? t('nav.account') : t('nav.login'), icon: UserRound },
     { to: '/wishlist', label: `${t('nav.wishlist')}${wishCount ? ` (${wishCount})` : ''}`, icon: Heart },
     { to: '/cart', label: `${t('nav.cart')}${count ? ` (${count})` : ''}`, icon: ShoppingBag },
   ];
-  const links = [{ to: '/', label: t('nav.home') }, { to: '/shop', label: t('nav.shop') }];
+  const links = [{ to: '/', label: t('nav.home') }];
 
   return (
     <Overlay open={menuOpen} onClose={close} title={t('common.menu')} hideTitle placement="right">
@@ -67,12 +70,15 @@ export function MobileNav() {
               </motion.li>
             ))}
             <motion.li variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} className="py-2">
-              <p className="px-4 pb-1 text-xs font-bold uppercase tracking-[0.14em] text-ink-muted">{t('nav.products')}</p>
-              <ul className="flex flex-col">
-                {CATEGORY_LINKS.map((c) => (
-                  <li key={c.to}>
-                    <NavLink to={c.to} onClick={close} className={({ isActive }) => `${linkCls({ isActive })} !min-h-[46px] !text-base !font-medium`}>
-                      {t(c.label)}
+              <NavLink to="/shop" onClick={close} className={linkCls}>
+                {t('nav.products')}
+                <ChevronRight className="h-5 w-5 text-ink-soft" aria-hidden />
+              </NavLink>
+              <ul className="ml-4 flex flex-col border-l border-line pl-2">
+                {PRODUCTS.filter((p) => p.status === 'active').map((p) => (
+                  <li key={p.id}>
+                    <NavLink to={`/product/${p.slug}`} onClick={close} className={({ isActive }) => `${linkCls({ isActive })} !min-h-[44px] !text-base !font-medium`}>
+                      {L(p.name)}
                       <ChevronRight className="h-4 w-4 text-ink-soft" aria-hidden />
                     </NavLink>
                   </li>

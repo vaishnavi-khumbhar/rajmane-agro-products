@@ -1,15 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Heart, Menu, Search, ShoppingBag, UserRound } from 'lucide-react';
 import { useLang } from '@/context/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useUI } from '@/context/UIContext';
-import { Dropdown } from '@/components/ui/Dropdown';
+import { useAuth } from '@/context/AuthContext';
+import { ProductsMenu } from './ProductsMenu';
 import { Logo } from './Logo';
 import { LanguageSelector } from './LanguageSelector';
-import { CATEGORY_LINKS, MAIN_LINKS } from './navLinks';
+import { MAIN_LINKS } from './navLinks';
 
 function Underline({ show }: { show: boolean }) {
   return show ? (
@@ -56,11 +57,10 @@ function IconLink({ to, label, children, count, className = '' }: { to: string; 
 
 export function Header() {
   const { t } = useLang();
+  const { user } = useAuth();
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
   const { setSearchOpen, setMenuOpen } = useUI();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -69,8 +69,6 @@ export function Header() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const productsActive = pathname.startsWith('/products') || pathname.startsWith('/product/');
 
   return (
     <header
@@ -94,26 +92,10 @@ export function Header() {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/shop" className={({ isActive }) => `${linkBase} ${isActive ? 'text-plum-800' : 'text-ink/80 hover:text-plum-800'}`}>
-                {({ isActive }) => (
-                  <>
-                    {t('nav.shop')}
-                    <Underline show={isActive} />
-                  </>
-                )}
-              </NavLink>
-            </li>
-            <li className="relative">
-              <Dropdown
-                buttonClassName={`${linkBase} ${productsActive ? 'text-plum-800' : 'text-ink/80 hover:text-plum-800'}`}
-                label={t('nav.products')}
-                items={[
-                  ...CATEGORY_LINKS.map((c) => ({ key: c.to, label: t(c.label), description: t(c.desc), onSelect: () => navigate(c.to) })),
-                  { key: 'all', label: t('nav.allProducts'), onSelect: () => navigate('/shop') },
-                ]}
-                menuClassName="w-72"
+              <ProductsMenu
+                linkClass={(active) => `${linkBase} ${active ? 'text-plum-800' : 'text-ink/80 hover:text-plum-800'}`}
+                underline={(show) => <Underline show={show} />}
               />
-              <Underline show={productsActive} />
             </li>
             {MAIN_LINKS.map((l) => (
               <li key={l.to}>
@@ -145,10 +127,17 @@ export function Header() {
           </IconLink>
           <Link
             to="/login"
+            aria-label={user ? `${t('nav.account')}: ${user.name}` : undefined}
             className="ml-2 hidden h-11 items-center gap-2 rounded-full bg-gradient-to-r lg:inline-flex from-plum-700 to-plum-600 px-5 text-sm font-bold text-white shadow-[0_10px_20px_-12px_rgba(122,36,112,.9)] transition-all hover:from-plum-800 hover:to-plum-700 hover:shadow-[0_14px_24px_-12px_rgba(122,36,112,.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-700 focus-visible:ring-offset-2 active:scale-[0.97]"
           >
-            <UserRound className="h-4 w-4" aria-hidden />
-            {t('nav.login')}
+            {user ? (
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-white/20 text-xs font-extrabold" aria-hidden>
+                {user.name.slice(0, 1).toUpperCase()}
+              </span>
+            ) : (
+              <UserRound className="h-4 w-4" aria-hidden />
+            )}
+            <span className="max-w-[8rem] truncate">{user ? user.name.split(' ')[0] : t('nav.login')}</span>
           </Link>
           <button
             type="button"

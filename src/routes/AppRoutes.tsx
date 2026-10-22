@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { MainLayout } from '@/layouts/MainLayout';
 import HomePage from '@/pages/HomePage';
+import { RequireAuth } from '@/routes/RequireAuth';
 
 // Route-level code splitting: only the homepage ships in the initial bundle.
 const ShopPage = lazy(() => import('@/pages/ShopPage'));
@@ -29,10 +30,10 @@ export function AppRoutes() {
         <Route path="products/jaggery-powder" element={<ShopPage key="jaggery-powder" category="jaggery-powder" />} />
         <Route path="products/jaggery-cubes" element={<ShopPage key="jaggery-cubes" category="jaggery-cubes" />} />
         <Route path="product/:slug" element={<ProductDetailPage />} />
-        <Route path="cart" element={<CartPage />} />
-        <Route path="wishlist" element={<WishlistPage />} />
+       <Route path="cart" element={<RequireAuth><CartPage /></RequireAuth>} />
+<Route path="wishlist" element={<RequireAuth><WishlistPage /></RequireAuth>} />
+<Route path="checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
         <Route path="login" element={<LoginPage />} />
-        <Route path="checkout" element={<CheckoutPage />} />
         <Route path="order-success" element={<OrderSuccessPage />} />
         <Route path="order-failed" element={<OrderFailedPage />} />
         <Route path="track-order" element={<TrackOrderPage />} />
@@ -43,6 +44,7 @@ export function AppRoutes() {
         <Route path="terms-and-conditions" element={<PolicyPage key="terms" slug="terms-and-conditions" />} />
         <Route path="shipping-policy" element={<PolicyPage key="shipping" slug="shipping-policy" />} />
         <Route path="refund-and-cancellation-policy" element={<PolicyPage key="refund" slug="refund-and-cancellation-policy" />} />
+        <Route path="disclaimer" element={<PolicyPage key="disclaimer" slug="disclaimer" />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

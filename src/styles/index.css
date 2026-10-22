@@ -26,10 +26,21 @@ html[lang='hi'] {
   --font-display: 'Tiro Devanagari Marathi', 'Playfair Display', Georgia, serif;
   --font-sans: 'Mukta', 'Manrope', system-ui, sans-serif;
 }
+/* Devanagari glyphs in Mukta / Tiro look smaller than Latin glyphs in Manrope / Playfair at the same size,
+   so scale the whole type system up ~10% for Marathi & Hindi (all Tailwind text-* sizes are rem-based). */
+html[lang='mr'],
+html[lang='hi'] {
+  font-size: 110%;
+}
 html[lang='mr'] body,
 html[lang='hi'] body {
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.7;
+}
+/* Letter-spacing breaks Devanagari conjuncts and the shirorekha (top line) — keep it normal. */
+html[lang='mr'] [class*='tracking-'],
+html[lang='hi'] [class*='tracking-'] {
+  letter-spacing: normal !important;
 }
 
 @layer base {

@@ -5,6 +5,7 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 import { useLang } from '@/context/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoNotice } from '@/components/ui/DemoNotice';
@@ -26,7 +27,8 @@ export default function CheckoutPage() {
   const { notify } = useToast();
   const navigate = useNavigate();
   const formRef = useRef<HTMLFormElement>(null);
-  const [v, setV] = useState<Values>({ name: '', phone: '', email: '', notes: '', ...blankAddr, billing: { ...blankAddr } });
+  const { user } = useAuth();
+  const [v, setV] = useState<Values>({ name: user?.name ?? '', phone: '', email: user?.email ?? '', notes: '', ...blankAddr, billing: { ...blankAddr } });
   const [billingSame, setBillingSame] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState<null | 'success' | 'failed'>(null);

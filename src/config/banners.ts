@@ -6,6 +6,8 @@
  * missing the desktop banner is shown on phones as well.
  * `alt` must describe the text inside the image so screen-reader users get the same message.
  */
+import { asset } from './paths';
+
 export interface HeroBanner {
   id: string;
   desktop: string;
@@ -18,29 +20,29 @@ export interface HeroBanner {
 export const HERO_BANNERS: HeroBanner[] = [
   {
     id: 'traditional-taste',
-    desktop: '/assets/banners/banner-3.webp',
-    desktopSm: '/assets/banners/banner-3-sm.webp',
+    desktop: asset('assets/banners/banner-3.webp'),
+    desktopSm: asset('assets/banners/banner-3-sm.webp'),
     alt: 'Rajmane — Traditional Taste. Pure Goodness. Discover Rajmane jaggery products. Shop now.',
     href: '/shop',
   },
   {
     id: 'little-ones',
-    desktop: '/assets/banners/banner-4.webp',
-    desktopSm: '/assets/banners/banner-4-sm.webp',
+    desktop: asset('assets/banners/banner-4.webp'),
+    desktopSm: asset('assets/banners/banner-4-sm.webp'),
     alt: 'Rajmane — Pure Goodness for Little Ones. Shop now.',
     href: '/shop',
   },
   {
     id: 'every-form',
-    desktop: '/assets/banners/banner-2.webp',
-    desktopSm: '/assets/banners/banner-2-sm.webp',
+    desktop: asset('assets/banners/banner-2.webp'),
+    desktopSm: asset('assets/banners/banner-2-sm.webp'),
     alt: 'Rajmane — Discover Sweetness in Every Form: Jaggery, Jaggery Powder and Jaggery Cubes.',
     href: '/shop',
   },
   {
     id: 'natures-sweetness',
-    desktop: '/assets/banners/banner-1.webp',
-    desktopSm: '/assets/banners/banner-1-sm.webp',
+    desktop: asset('assets/banners/banner-1.webp'),
+    desktopSm: asset('assets/banners/banner-1-sm.webp'),
     alt: "Rajmane — Nature's Sweetness, Rich in Goodness. Explore our Jaggery, Jaggery Powder and Jaggery Cubes.",
     href: '/shop',
   },

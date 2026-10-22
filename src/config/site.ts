@@ -10,10 +10,10 @@ export const SITE = {
   email: 'rajmaneagrofpc4400@gmail.com',
   mapUrl: 'https://maps.app.goo.gl/FTyV5ciXBnKdxxd5A',
   // Social links: intentionally empty until official URLs are confirmed. Footer hides empty entries.
-  social: {
-    instagram: '',
-    facebook: '',
-    youtube: '',
+   social: {
+    facebook: 'https://www.facebook.com/profile.php?id=61593061823773',
+    instagram: 'https://www.instagram.com/rajmane_agro_farmer/',
+    
   },
   // Frontend phase flag. When the PHP API is connected, set to false and wire services/ to real endpoints.
   demoMode: true,

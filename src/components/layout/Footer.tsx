@@ -1,12 +1,26 @@
 import { Link } from 'react-router-dom';
-import { Phone, Globe, Mail, MapPin, MessageCircle } from 'lucide-react';
+import { Phone, Globe, Mail, MapPin, MessageCircle, Instagram, Facebook, Youtube } from 'lucide-react';
 import { useLang } from '@/context/LanguageContext';
 import { SITE } from '@/config/site';
 import { BRAND } from '@/config/assets';
 import { LotusMark } from '@/components/ui/LotusMark';
 import type { TKey } from '@/i18n';
 
+// Optional contact details: shown only when they exist in config/site.ts (prevents TypeScript errors if absent)
+const S = SITE as typeof SITE &
+  Partial<{ whatsappUrl: string; whatsappDisplay: string; email: string; mapUrl: string; social: Partial<Record<'instagram' | 'facebook' | 'youtube', string>> }>;
+const SOCIAL = (S.social ?? {}) as Partial<Record<'instagram' | 'facebook' | 'youtube', string>>;
+
+// Google Maps search for the business location (Masur, Tal. Karad, Dist. Satara – 415106)
+const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=Masur%2C%20Karad%2C%20Satara%2C%20Maharashtra%20415106';
+
 const DEV = { name: 'Advertising Branding & Marketing', url: 'https://advertisingandbrandingmarketing.com/' };
+
+const SOCIALS = [
+  { key: 'instagram', label: 'Instagram', Icon: Instagram, always: true, hover: 'hover:border-transparent hover:bg-gradient-to-tr hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF]' },
+  { key: 'facebook', label: 'Facebook', Icon: Facebook, always: true, hover: 'hover:border-transparent hover:bg-[#1877F2]' },
+  { key: 'youtube', label: 'YouTube', Icon: Youtube, always: false, hover: 'hover:border-transparent hover:bg-[#FF0000]' },
+] as const;
 
 export function Footer() {
   const { t } = useLang();
@@ -39,9 +53,11 @@ export function Footer() {
       ],
     },
   ];
-  const socials = Object.entries(SITE.social).filter(([, url]) => !!url);
+  const socials = SOCIALS.filter((s) => s.always || SOCIAL[s.key]);
   const chip =
     'inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-[0.92rem] text-plum-100 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white focus-visible:outline-white';
+  const socialBtn =
+    'grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/5 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30 focus-visible:outline-white';
 
   return (
     <footer className="relative overflow-hidden bg-plum-950 text-center text-plum-100">
@@ -63,18 +79,22 @@ export function Footer() {
               {SITE.phoneDisplay}
             </a>
           </li>
-          <li>
-            <a href={SITE.whatsappUrl} target="_blank" rel="noopener noreferrer" className={chip}>
-              <MessageCircle className="h-4 w-4" aria-hidden />
-              {t('contact.whatsapp')}: {SITE.whatsappDisplay}
-            </a>
-          </li>
-          <li>
-            <a href={`mailto:${SITE.email}`} className={`${chip} break-all`}>
-              <Mail className="h-4 w-4 shrink-0" aria-hidden />
-              {SITE.email}
-            </a>
-          </li>
+          {S.whatsappUrl && (
+            <li>
+              <a href={S.whatsappUrl} target="_blank" rel="noopener noreferrer" className={chip}>
+                <MessageCircle className="h-4 w-4" aria-hidden />
+                {t('contact.whatsapp')}: {S.whatsappDisplay ?? SITE.phoneDisplay}
+              </a>
+            </li>
+          )}
+          {S.email && (
+            <li>
+              <a href={`mailto:${S.email}`} className={`${chip} break-all`}>
+                <Mail className="h-4 w-4 shrink-0" aria-hidden />
+                {S.email}
+              </a>
+            </li>
+          )}
           <li>
             <a href={SITE.url} rel="noopener" className={chip}>
               <Globe className="h-4 w-4" aria-hidden />
@@ -83,22 +103,31 @@ export function Footer() {
           </li>
         </ul>
 
-        <a href={SITE.mapUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex max-w-md items-start justify-center gap-2 text-[0.92rem] text-plum-200 hover:text-white hover:underline focus-visible:outline-white">
+        <a href={S.mapUrl ?? MAP_URL} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex max-w-md items-start justify-center gap-2 text-[0.92rem] text-plum-200 hover:text-white hover:underline focus-visible:outline-white">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <span>{t('contact.addressValue')}</span>
         </a>
 
-        {socials.length > 0 && (
-          <ul className="mt-5 flex flex-wrap justify-center gap-4">
-            {socials.map(([name, url]) => (
-              <li key={name}>
-                <a href={url} className="capitalize hover:text-white hover:underline" rel="noopener noreferrer" target="_blank">
-                  {name}
-                </a>
+        {/* Social icons. Add the official URLs in config/site.ts → SITE.social to make them clickable. */}
+        <ul className="mt-7 flex flex-wrap items-center justify-center gap-3" aria-label="Social media">
+          {socials.map(({ key, label, Icon, hover }) => {
+            const url = SOCIAL[key];
+            return (
+              <li key={key}>
+                {url ? (
+                  <a href={url} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className={`${socialBtn} ${hover}`}>
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </a>
+                ) : (
+                  <span title={label} className={`${socialBtn} cursor-default ${hover}`}>
+                    <Icon className="h-5 w-5" aria-hidden />
+                    <span className="sr-only">{label}</span>
+                  </span>
+                )}
               </li>
-            ))}
-          </ul>
-        )}
+            );
+          })}
+        </ul>
       </div>
 
       {/* Link columns */}
@@ -125,7 +154,7 @@ export function Footer() {
         <div className="container-site flex flex-col items-center gap-3 py-6 text-sm md:flex-row md:justify-between">
           <p className="text-plum-200 md:text-left">{t('footer.rights', { year: new Date().getFullYear() })}</p>
           <p className="text-plum-200 md:text-right">
-            {t('footer.designedBy')}{' '}
+            {t('footer.devBy')}{' '}
             <a href={DEV.url} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white focus-visible:outline-white">
               {DEV.name}
             </a>

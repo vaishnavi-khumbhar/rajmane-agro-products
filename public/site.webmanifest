@@ -1,1 +1,12 @@
-{"name":"Rajmane Agro Products","short_name":"Rajmane","icons":[{"src":"/assets/brand/icon-180.png","sizes":"180x180","type":"image/png"},{"src":"/assets/brand/icon-512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#7A2470","background_color":"#FFFAF5","display":"standalone"}
+{
+  "name": "Rajmane Agro Products",
+  "short_name": "Rajmane",
+  "icons": [
+    { "src": "assets/brand/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#7A2470",
+  "background_color": "#FFFAF5",
+  "display": "standalone",
+  "start_url": "."
+}

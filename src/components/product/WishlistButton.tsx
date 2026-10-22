@@ -4,11 +4,13 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useLang } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import type { Product } from '@/data/types';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export function WishlistButton({ product, className = '', size = 'md' }: { product: Product; className?: string; size?: 'md' | 'lg' }) {
   const { has, toggle } = useWishlist();
   const { t, L } = useLang();
   const { notify } = useToast();
+  const requireAuth = useRequireAuth();
   const name = L(product.name);
   const active = has(product.id);
   const dim = size === 'lg' ? 'h-12 w-12' : 'h-10 w-10';
@@ -21,6 +23,7 @@ export function WishlistButton({ product, className = '', size = 'md' }: { produ
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!requireAuth()) return;
         const added = toggle(product.id);
         notify(added ? t('wishlist.added', { name }) : t('wishlist.removed', { name }), { tone: added ? 'success' : 'info' });
       }}

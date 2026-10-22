@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Home, ShoppingBag, Store, UserRound } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { useLang } from '@/context/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -11,12 +12,13 @@ export function MobileTabBar() {
   const { t } = useLang();
   const { count } = useCart();
   const { count: wish } = useWishlist();
+  const { user } = useAuth();
   const tabs: { to: string; label: TKey; icon: typeof Home; badge?: number; end?: boolean }[] = [
     { to: '/', label: 'nav.home', icon: Home, end: true },
-    { to: '/shop', label: 'nav.shop', icon: Store },
+    { to: '/shop', label: 'nav.products', icon: Store },
     { to: '/wishlist', label: 'nav.wishlist', icon: Heart, badge: wish },
     { to: '/cart', label: 'nav.cart', icon: ShoppingBag, badge: count },
-    { to: '/login', label: 'nav.login', icon: UserRound },
+    { to: '/login', label: user ? 'nav.account' : 'nav.login', icon: UserRound },
   ];
   return (
     <nav

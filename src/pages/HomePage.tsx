@@ -6,6 +6,7 @@ import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { BenefitsSection } from '@/components/home/BenefitsSection';
 import { WholesaleSection } from '@/components/home/WholesaleSection';
 import { StorySection } from '@/components/home/StorySection';
+import { ProcessSection } from '@/components/home/ProcessSection';
 import { FaqPreview } from '@/components/home/FaqPreview';
 import { ContactCta } from '@/components/home/ContactCta';
 import { ReviewsSection } from '@/components/home/ReviewsSection';
@@ -23,6 +24,7 @@ export default function HomePage() {
       <ReviewsSection />
       <WholesaleSection />
       <StorySection />
+      <ProcessSection />
       <FaqPreview />
       <ExperienceCta />
       <ContactCta />

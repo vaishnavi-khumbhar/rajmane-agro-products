@@ -1,5 +1,7 @@
 // Centralised asset registry. To replace a photo, drop the new file in /public/assets/images and update the
 // path here — no component references image paths directly.
+import { asset } from './paths';
+
 export interface ImageAsset {
   src: string;
   /** Smaller (≈700px) version for mobile / cards */
@@ -9,17 +11,17 @@ export interface ImageAsset {
 }
 
 const img = (name: string, width: number, height: number): ImageAsset => ({
-  src: `/assets/images/${name}.webp`,
-  srcSm: `/assets/images/${name}-sm.webp`,
+  src: asset(`assets/images/${name}.webp`),
+  srcSm: asset(`assets/images/${name}-sm.webp`),
   width,
   height,
 });
 
 export const BRAND = {
-  logo: '/assets/brand/rajmane-logo.png', // 539×259, transparent; never stretch or recolour
+  logo: asset('assets/brand/rajmane-logo.png'), // 539×259, transparent; never stretch or recolour
   logoWidth: 539,
   logoHeight: 259,
-  icon: '/assets/brand/icon-512.png',
+  icon: asset('assets/brand/icon-512.png'),
 };
 
 export const IMAGES = {

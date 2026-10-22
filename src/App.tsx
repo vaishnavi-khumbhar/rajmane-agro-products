@@ -6,6 +6,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { UIProvider } from '@/context/UIContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { AppRoutes } from '@/routes/AppRoutes';
+import { AuthProvider } from '@/context/AuthContext';
 
 export default function App() {
   return (
@@ -13,15 +14,17 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <LanguageProvider>
         <ToastProvider>
-          <CartProvider>
-            <WishlistProvider>
-            <BrowserRouter>
-              <UIProvider>
-                <AppRoutes />
-              </UIProvider>
-            </BrowserRouter>
-            </WishlistProvider>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '') || '/'}>
+                  <UIProvider>
+                    <AppRoutes />
+                  </UIProvider>
+                </BrowserRouter>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </ToastProvider>
       </LanguageProvider>
     </MotionConfig>

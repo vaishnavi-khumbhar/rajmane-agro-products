@@ -10,6 +10,7 @@ import { CATEGORIES } from '@/data/catalog';
 import type { Product } from '@/data/types';
 import { WishlistButton } from './WishlistButton';
 import { PriceBlock, discountPct } from './PriceBlock';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 /** Sai-Jeevan-style commerce card: image + wishlist, name, short copy, price/MRP/% off, cart icon + Buy Now. */
 export function ProductCard({ product, priority }: { product: Product; priority?: boolean }) {
@@ -17,6 +18,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
   const addToCart = useAddToCart();
   const { add } = useCart();
   const navigate = useNavigate();
+  const requireAuth = useRequireAuth();
   const [justAdded, setJustAdded] = useState(false);
   const cat = CATEGORIES.find((c) => c.slug === product.category)!;
   const name = L(product.name);
@@ -25,7 +27,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
   const href = `/product/${product.slug}`;
 
   const onAdd = () => {
-    addToCart(product, 1);
+    if (!addToCart(product, 1)) return; // not logged in → sent to login page
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1400);
   };
@@ -99,6 +101,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
               whileTap={{ scale: 0.95 }}
               disabled={unavailable}
               onClick={() => {
+                if (!requireAuth()) return;
                 add(product.id, 1);
                 navigate('/checkout');
               }}

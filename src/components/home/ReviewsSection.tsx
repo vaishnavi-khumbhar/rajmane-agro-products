@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, PenLine, Star } from 'lucide-react';
+import { ArrowRight, PenLine, Quote, Star } from 'lucide-react';
 import { useLang } from '@/context/LanguageContext';
 import { REVIEWS, type Review } from '@/data/reviews';
 import { SITE } from '@/config/site';
@@ -13,17 +13,6 @@ import { formatDate } from '@/utils/format';
 
 const AVATAR_GRADIENTS = ['from-plum-500 to-plum-700', 'from-jaggery-500 to-jaggery-700', 'from-rose-400 to-rose-600', 'from-emerald-500 to-emerald-700', 'from-amber-400 to-orange-600'];
 const initials = (name: string) => name.split(' ').slice(-1)[0].slice(0, 1).toUpperCase();
-
-function Avatar({ review, index, className = 'h-12 w-12 text-base' }: { review: Review; index: number; className?: string }) {
-  if (review.photo) {
-    return <img src={review.photo} alt="" loading="lazy" className={`shrink-0 rounded-full object-cover ring-2 ring-white ${className}`} />;
-  }
-  return (
-    <span className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br font-bold text-white ring-2 ring-white ${AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length]} ${className}`} aria-hidden>
-      {initials(review.name)}
-    </span>
-  );
-}
 
 function Stars({ value, size = 'h-4 w-4' }: { value: number; size?: string }) {
   return (
@@ -42,7 +31,8 @@ function ReviewCard({ review, index, large }: { review: Review; index: number; l
       whileHover={{ y: -4 }}
       className={`relative flex h-full flex-col rounded-2xl border border-line bg-white p-5 shadow-[0_2px_6px_rgba(58,16,53,.04),0_18px_40px_-28px_rgba(58,16,53,.35)] sm:p-6 ${large ? 'lg:p-8' : ''}`}
     >
-      <div className="flex flex-wrap items-center gap-2">
+      <Quote className="absolute right-5 top-5 h-8 w-8 text-plum-100" aria-hidden />
+      <div className="flex flex-wrap items-center gap-2 pr-10">
         <Stars value={review.rating} />
         <span className="text-xs font-semibold text-ink-muted">
           ({review.rating}/5)
@@ -51,29 +41,23 @@ function ReviewCard({ review, index, large }: { review: Review; index: number; l
         <span className="ml-auto text-xs text-ink-soft">{formatDate(review.date, lang)}</span>
       </div>
       <p className={`mt-4 flex-1 leading-relaxed text-ink ${large ? 'text-[1.02rem] lg:text-lg' : 'text-[0.95rem]'}`}>{L(review.text)}</p>
-      <div className="mt-5 flex items-center gap-3.5 border-t border-line pt-4">
-        <Avatar review={review} index={index} className="h-12 w-12 text-lg" />
+      <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br text-base font-bold text-white ring-2 ring-white ${AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length]}`} aria-hidden>
+          {initials(review.name)}
+        </span>
         <div className="min-w-0">
-          <p className="truncate text-[0.95rem] font-bold text-plum-950">{review.name}</p>
+          <p className="truncate font-semibold text-plum-950">{review.name}</p>
           <p className="truncate text-xs text-ink-muted">
             {review.role ? `${L(review.role)}, ` : ''}
             {L(review.city)}
           </p>
         </div>
-        {review.isSample ? (
-          <span className="chip ml-auto shrink-0 bg-warn-bg text-warn">{t('reviews.sample')}</span>
-        ) : (
-          <span className="chip ml-auto shrink-0 bg-success-bg text-success">
-            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-            {t('reviews.verified')}
-          </span>
-        )}
       </div>
     </motion.article>
   );
 }
+export function WriteReview({ open, onClose }: { open: boolean; onClose: () => void }) {
 
-function WriteReview({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();
   const [rating, setRating] = useState(0);
   const [name, setName] = useState('');
@@ -143,7 +127,9 @@ function WriteReview({ open, onClose }: { open: boolean; onClose: () => void }) 
 export function ReviewsSection() {
   const { t } = useLang();
   const [writing, setWriting] = useState(false);
+  // Sample (layout) reviews show only while SITE.demoMode is true; real reviews always show.
   const reviews = REVIEWS.filter((r) => !r.isSample || SITE.demoMode);
+  const hasReviews = reviews.length > 0;
   const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : '0';
   const [first, ...rest] = reviews;
 
@@ -159,10 +145,13 @@ export function ReviewsSection() {
             <p className="mt-3 max-w-md text-ink-muted">{t('reviews.lead')}</p>
           </Reveal>
           <Reveal delay={0.1} className="lg:justify-self-end">
+            {hasReviews && (
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                 {reviews.slice(0, 5).map((r, i) => (
-                  <Avatar key={r.id} review={r} index={i} className="h-12 w-12 text-sm !ring-[3px]" />
+                  <span key={r.id} className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-sm font-bold text-white ring-[3px] ring-white ${AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length]}`} aria-hidden>
+                    {initials(r.name)}
+                  </span>
                 ))}
               </div>
               <div>
@@ -173,6 +162,7 @@ export function ReviewsSection() {
                 <p className="text-sm text-ink-muted">{t('reviews.avg', { avg })}</p>
               </div>
             </div>
+            )}
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <ButtonLink to="/shop" size="lg" className="!bg-gradient-to-r !from-amber-400 !to-[#F59E0B] !text-plum-950 !shadow-[0_12px_24px_-14px_rgba(245,158,11,.9)] hover:!from-amber-300 hover:!to-amber-500" iconRight={<ArrowRight className="h-5 w-5" aria-hidden />}>
                 {t('reviews.shop')}
@@ -184,6 +174,20 @@ export function ReviewsSection() {
           </Reveal>
         </div>
 
+        {!hasReviews && (
+          <Reveal className="mt-10 flex flex-col items-center rounded-3xl border border-dashed border-plum-200 bg-white/80 px-6 py-12 text-center shadow-card">
+            <span className="flex gap-1 text-amber-400" aria-hidden>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star key={n} className="h-7 w-7" fill="currentColor" strokeWidth={0} />
+              ))}
+            </span>
+            <h3 className="mt-4 font-display text-2xl font-semibold text-plum-900">{t('reviews.emptyTitle')}</h3>
+            <p className="mt-2 max-w-lg text-ink-muted">{t('reviews.emptyText')}</p>
+            <Button className="mt-6" onClick={() => setWriting(true)} icon={<PenLine className="h-4 w-4" aria-hidden />} aria-haspopup="dialog">
+              {t('reviews.write')}
+            </Button>
+          </Reveal>
+        )}
 
         {first && (
           <ul className="-mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-[1.4fr_1fr_1fr] lg:grid-rows-2 lg:gap-5">

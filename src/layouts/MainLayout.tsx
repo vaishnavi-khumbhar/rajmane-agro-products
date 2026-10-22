@@ -10,6 +10,7 @@ import { SearchDialog } from '@/components/layout/SearchDialog';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { Toaster } from '@/components/ui/Toaster';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { FloatingContact } from '@/components/layout/FloatingContact';
 
 function PageFallback() {
   return (
@@ -46,6 +47,7 @@ export function MainLayout() {
       <div className="pb-16 lg:pb-0">
         <Footer />
       </div>
+      <FloatingContact />
       <MobileTabBar />
       <MobileNav />
       <SearchDialog />

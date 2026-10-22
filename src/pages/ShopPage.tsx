@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { PackageSearch, Search, X } from 'lucide-react';
+import { PackageSearch, Search, SlidersHorizontal, X } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { useLang } from '@/context/LanguageContext';
 import { CATEGORIES, PRODUCTS } from '@/data/catalog';
@@ -10,9 +10,10 @@ import { matchesQuery } from '@/utils/search';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Img } from '@/components/ui/Img';
-import { LotusMark } from '@/components/ui/LotusMark';
 import { DemoNotice } from '@/components/ui/DemoNotice';
 import { Button } from '@/components/ui/Button';
+import { Overlay } from '@/components/ui/Overlay';
+import { SelectField, TextField } from '@/components/ui/Field';
 
 type Sort = 'featured' | 'newest' | 'price-asc' | 'price-desc' | 'name';
 
@@ -24,175 +25,271 @@ const sorters: Record<Sort, (a: Product, b: Product) => number> = {
   name: (a, b) => a.name.en.localeCompare(b.name.en),
 };
 
+const num = (v: string | null) => (v && !Number.isNaN(Number(v)) && Number(v) >= 0 ? Number(v) : null);
+
 export default function ShopPage({ category }: { category?: CategorySlug }) {
-  const { t } = useLang();
+  const { t, money } = useLang();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const q = params.get('q') ?? '';
   const sort = (params.get('sort') as Sort) || 'featured';
+  const min = num(params.get('min'));
+  const max = num(params.get('max'));
   const cat = category ? CATEGORIES.find((c) => c.slug === category) : undefined;
+
+  const [searchOpen, setSearchOpen] = useState(!!q);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  // Draft values edited inside the popup; applied only on "Apply Filters"
+  const [draft, setDraft] = useState({ cat: category ?? '', sort, min: min?.toString() ?? '', max: max?.toString() ?? '' });
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
 
   const title = cat ? t(`shop.${cat.key}Title`) : t('shop.title');
   const lead = cat ? t(`shop.${cat.key}Lead`) : t('shop.lead');
-  usePageMeta(cat ? t(`categories.${cat.key}`) : t('nav.shop'), lead);
+  usePageMeta(cat ? t(`categories.${cat.key}`) : t('nav.products'), lead);
 
   const products = useMemo(
     () =>
-      PRODUCTS.filter((p) => p.status === 'active' && (!category || p.category === category) && matchesQuery(p, q)).sort(
-        sorters[sort] ?? sorters.featured,
-      ),
-    [category, q, sort],
+      PRODUCTS.filter(
+        (p) =>
+          p.status === 'active' &&
+          (!category || p.category === category) &&
+          matchesQuery(p, q) &&
+          (min === null || p.demoPrice >= min) &&
+          (max === null || p.demoPrice <= max),
+      ).sort(sorters[sort] ?? sorters.featured),
+    [category, q, sort, min, max],
   );
 
-  const update = (key: string, value: string) => {
+  const activeCount = (category ? 1 : 0) + (sort !== 'featured' ? 1 : 0) + (min !== null ? 1 : 0) + (max !== null ? 1 : 0);
+
+  const setQuery = (value: string) => {
     const next = new URLSearchParams(params);
-    if (value) next.set(key, value);
-    else next.delete(key);
+    if (value) next.set('q', value);
+    else next.delete('q');
     setParams(next, { replace: true });
   };
 
-  const chip = (active: boolean) =>
-    `inline-flex min-h-[44px] items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-700 focus-visible:ring-offset-2 ${
-      active ? 'border-plum-700 bg-plum-700 text-white' : 'border-line bg-white text-ink hover:border-plum-400 hover:text-plum-800'
-    }`;
+  const openFilters = () => {
+    setDraft({ cat: category ?? '', sort, min: min?.toString() ?? '', max: max?.toString() ?? '' });
+    setFilterOpen(true);
+  };
+
+  const apply = (d: typeof draft) => {
+    const next = new URLSearchParams();
+    if (q) next.set('q', q);
+    if (d.sort && d.sort !== 'featured') next.set('sort', d.sort);
+    if (num(d.min) !== null) next.set('min', String(num(d.min)));
+    if (num(d.max) !== null) next.set('max', String(num(d.max)));
+    const path = d.cat ? `/products/${d.cat}` : '/shop';
+    setFilterOpen(false);
+    navigate({ pathname: path, search: next.toString() ? `?${next}` : '' }, { replace: true });
+  };
+
+  const clearAll = () => {
+    setFilterOpen(false);
+    setSearchOpen(false);
+    navigate('/shop', { replace: true });
+  };
+
+  // Removable chips for whatever is currently applied
+  const chips: { key: string; label: string; remove: () => void }[] = [
+    ...(cat ? [{ key: 'cat', label: t(`categories.${cat.key}`), remove: () => apply({ cat: '', sort, min: min?.toString() ?? '', max: max?.toString() ?? '' }) }] : []),
+    ...(sort !== 'featured'
+      ? [{ key: 'sort', label: t(({ newest: 'shop.sortNewest', 'price-asc': 'shop.sortPriceAsc', 'price-desc': 'shop.sortPriceDesc', name: 'shop.sortName' } as const)[sort as Exclude<Sort, 'featured'>]), remove: () => apply({ cat: category ?? '', sort: 'featured', min: min?.toString() ?? '', max: max?.toString() ?? '' }) }]
+      : []),
+    ...(min !== null ? [{ key: 'min', label: `≥ ${money(min)}`, remove: () => apply({ cat: category ?? '', sort, min: '', max: max?.toString() ?? '' }) }] : []),
+    ...(max !== null ? [{ key: 'max', label: `≤ ${money(max)}`, remove: () => apply({ cat: category ?? '', sort, min: min?.toString() ?? '', max: '' }) }] : []),
+  ];
 
   return (
-    <>
-      <header className="relative overflow-hidden border-b border-line bg-gradient-to-b from-plum-50 to-ivory">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-plum-200/40 blur-3xl" aria-hidden />
-        <div className={`container-site relative grid items-center gap-8 py-10 sm:py-14 ${cat ? 'lg:grid-cols-[1.3fr_1fr]' : ''}`}>
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Breadcrumbs
-              items={[{ label: t('common.home'), to: '/' }, cat ? { label: t('nav.shop'), to: '/shop' } : { label: t('nav.shop') }, ...(cat ? [{ label: t(`categories.${cat.key}`) }] : [])]}
-            />
-            <p className="eyebrow mt-6">
-              <LotusMark className="h-4 w-4" />
-              {cat ? t(`categories.${cat.key}`) : t('shop.eyebrow')}
-            </p>
-            <h1 className="mt-3 max-w-3xl font-display text-display-lg font-medium text-plum-900">{title}</h1>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-muted">{lead}</p>
-          </motion.div>
-          {cat && (
-            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.1 }} className="hidden overflow-hidden rounded-[2rem] border-4 border-white shadow-lift lg:block">
-              <div className="aspect-[4/3]">
-                <Img image={cat.heroImage} alt="" priority sizes="40vw" className="h-full w-full object-cover" />
-              </div>
-            </motion.div>
+    <section className="container-site pb-12 pt-5 sm:pb-16 sm:pt-8" aria-labelledby="shop-title">
+      {/* Breadcrumb + actions (search, Filters) — same row on every screen size */}
+      <div className="flex items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: t('common.home'), to: '/' },
+            cat ? { label: t('nav.products'), to: '/shop' } : { label: t('nav.products') },
+            ...(cat ? [{ label: t(`categories.${cat.key}`) }] : []),
+          ]}
+        />
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSearchOpen((o) => !o)}
+            aria-expanded={searchOpen}
+            aria-controls="shop-search-row"
+            aria-label={t('shop.searchToggle')}
+            className={`grid h-11 w-11 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-700 ${
+              searchOpen || q ? 'border-plum-700 bg-plum-50 text-plum-800' : 'border-line bg-white text-ink hover:border-plum-400'
+            }`}
+          >
+            <Search className="h-[18px] w-[18px]" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={openFilters}
+            aria-haspopup="dialog"
+            className="relative inline-flex h-11 items-center gap-2 rounded-full border-2 border-plum-700 bg-white px-4 text-sm font-bold text-plum-800 transition-colors hover:bg-plum-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-700 focus-visible:ring-offset-2 sm:px-5"
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden />
+            {t('shop.filtersBtn')}
+            {activeCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-plum-700 px-1 text-[0.68rem] font-bold text-white ring-2 ring-white">
+                {activeCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Title block */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="mt-5">
+        <h1 id="shop-title" className="max-w-3xl font-display text-[clamp(1.75rem,1.3rem+2vw,2.6rem)] font-semibold leading-tight text-plum-900">
+          {title}
+        </h1>
+        <p className="mt-2 max-w-2xl text-[0.98rem] leading-relaxed text-ink-muted sm:text-base">{lead}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-ink-muted" aria-live="polite">
+            {t(products.length === 1 ? 'shop.countOne' : 'shop.count', { count: products.length })}
+          </p>
+          {chips.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={c.remove}
+              className="inline-flex min-h-[32px] items-center gap-1 rounded-full bg-plum-50 px-3 text-xs font-semibold text-plum-800 hover:bg-plum-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-700"
+            >
+              {c.label}
+              <X className="h-3.5 w-3.5" aria-hidden />
+              <span className="sr-only">({t('shop.clear')})</span>
+            </button>
+          ))}
+          {chips.length > 1 && (
+            <button type="button" onClick={clearAll} className="link text-xs">
+              {t('shop.clearFilters')}
+            </button>
           )}
         </div>
-      </header>
+      </motion.div>
 
-      <section className="container-site py-10 sm:py-14" aria-label={t('nav.products')}>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <nav aria-label={t('shop.filters')} className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-            <ul className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
-              <li>
-                <Link to={{ pathname: '/shop', search: q ? `?q=${encodeURIComponent(q)}` : '' }} className={chip(!category)} aria-current={!category ? 'page' : undefined}>
-                  {t('shop.filterAll')}
-                </Link>
-              </li>
-              {CATEGORIES.map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    to={{ pathname: `/products/${c.slug}`, search: q ? `?q=${encodeURIComponent(q)}` : '' }}
-                    className={chip(category === c.slug)}
-                    aria-current={category === c.slug ? 'page' : undefined}
-                  >
-                    {t(`categories.${c.key}`)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <div className="relative">
+      {/* Inline search (toggled by the search icon) */}
+      <AnimatePresence initial={false}>
+        {searchOpen && (
+          <motion.div
+            id="shop-search-row"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="relative mt-4 max-w-xl">
               <label htmlFor="shop-search" className="sr-only">
                 {t('shop.searchLabel')}
               </label>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" aria-hidden />
               <input
+                ref={searchRef}
                 id="shop-search"
                 type="search"
                 value={q}
-                onChange={(e) => update('q', e.target.value)}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder={t('nav.searchPlaceholder')}
-                className="field pl-11 sm:w-72"
+                className="field pl-11"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label htmlFor="shop-sort" className="shrink-0 text-sm font-semibold text-ink-muted">
-                {t('shop.sort')}
-              </label>
-              <select id="shop-sort" value={sort} onChange={(e) => update('sort', e.target.value === 'featured' ? '' : e.target.value)} className="field !w-auto min-w-[11rem] cursor-pointer">
-                <option value="featured">{t('shop.sortFeatured')}</option>
-                <option value="newest">{t('shop.sortNewest')}</option>
-                <option value="price-asc">{t('shop.sortPriceAsc')}</option>
-                <option value="price-desc">{t('shop.sortPriceDesc')}</option>
-                <option value="name">{t('shop.sortName')}</option>
-              </select>
-            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <DemoNotice className="mt-5 !py-3 text-sm">{t('shop.demoNote')}</DemoNotice>
+
+      {products.length === 0 ? (
+        <div className="mt-8 flex flex-col items-center rounded-xl3 border border-dashed border-plum-200 bg-white px-6 py-16 text-center">
+          <PackageSearch className="h-12 w-12 text-plum-400" aria-hidden />
+          <h2 className="mt-4 font-display text-2xl font-semibold text-plum-900">{t('shop.emptyTitle')}</h2>
+          <p className="mt-2 text-ink-muted">{t('shop.emptyText')}</p>
+          <Button className="mt-6" onClick={clearAll}>
+            {t('shop.clearFilters')}
+          </Button>
+        </div>
+      ) : (
+        <motion.ul layout className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+          <AnimatePresence mode="popLayout">
+            {products.map((p, i) => (
+              <motion.li
+                key={p.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.35, delay: i * 0.04 }}
+              >
+                <ProductCard product={p} priority={i < 4} />
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </motion.ul>
+      )}
+
+      {cat && (
+        <aside className="mt-14 grid gap-4 sm:grid-cols-2">
+          {CATEGORIES.filter((c) => c.slug !== cat.slug).map((c) => (
+            <Link key={c.slug} to={`/products/${c.slug}`} className="group flex items-center gap-4 rounded-xl2 border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-lift">
+              <span className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
+                <Img image={c.image} alt="" sizes="80px" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              </span>
+              <span>
+                <span className="block font-display text-lg font-semibold text-plum-900">{t(`categories.${c.key}`)}</span>
+                <span className="block text-sm text-ink-muted">{t(`categories.${c.key}Desc`)}</span>
+                <span className="mt-1 block text-sm font-semibold text-plum-700">{t('shop.shopNow')} →</span>
+              </span>
+            </Link>
+          ))}
+        </aside>
+      )}
+
+      {/* Filter popup */}
+      <Overlay open={filterOpen} onClose={() => setFilterOpen(false)} title={t('shop.filterTitle')} placement="center">
+        <form
+          className="space-y-5 p-5 sm:p-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            apply(draft);
+          }}
+        >
+          <SelectField label={t('product.category')} name="cat" plain value={draft.cat} onChange={(e) => setDraft((d) => ({ ...d, cat: e.target.value }))}>
+            <option value="">{t('shop.filterAll')}</option>
+            {CATEGORIES.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {t(`categories.${c.key}`)}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField label={t('shop.sort')} name="sort" plain value={draft.sort} onChange={(e) => setDraft((d) => ({ ...d, sort: e.target.value as Sort }))}>
+            <option value="featured">{t('shop.sortFeatured')}</option>
+            <option value="newest">{t('shop.sortNewest')}</option>
+            <option value="price-asc">{t('shop.sortPriceAsc')}</option>
+            <option value="price-desc">{t('shop.sortPriceDesc')}</option>
+            <option value="name">{t('shop.sortName')}</option>
+          </SelectField>
+          <div className="grid grid-cols-2 gap-4">
+            <TextField label={t('shop.priceMin')} name="min" plain type="number" inputMode="numeric" min={0} placeholder="0" value={draft.min} onChange={(e) => setDraft((d) => ({ ...d, min: e.target.value }))} />
+            <TextField label={t('shop.priceMax')} name="max" plain type="number" inputMode="numeric" min={0} placeholder="1000" value={draft.max} onChange={(e) => setDraft((d) => ({ ...d, max: e.target.value }))} />
           </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-ink-muted" aria-live="polite">
-            {t(products.length === 1 ? 'shop.countOne' : 'shop.count', { count: products.length })}
-            {q && <span className="font-normal"> · “{q}”</span>}
-          </p>
-          {(q || sort !== 'featured') && (
-            <button type="button" className="link inline-flex min-h-[40px] items-center gap-1 text-sm" onClick={() => setParams({}, { replace: true })}>
-              <X className="h-4 w-4" aria-hidden />
-              {t('shop.clearFilters')}
-            </button>
-          )}
-        </div>
-
-        <DemoNotice className="mt-6">{t('shop.demoNote')}</DemoNotice>
-
-        {products.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center rounded-xl3 border border-dashed border-plum-200 bg-white px-6 py-16 text-center">
-            <PackageSearch className="h-12 w-12 text-plum-400" aria-hidden />
-            <h2 className="mt-4 font-display text-2xl font-semibold text-plum-900">{t('shop.emptyTitle')}</h2>
-            <p className="mt-2 text-ink-muted">{t('shop.emptyText')}</p>
-            <Button className="mt-6" onClick={() => setParams({}, { replace: true })}>
-              {t('shop.clearFilters')}
+          <div className="flex gap-3 pt-1">
+            <Button type="submit" className="flex-1">
+              {t('shop.apply')}
+            </Button>
+            <Button variant="secondary" onClick={clearAll}>
+              {t('shop.clear')}
             </Button>
           </div>
-        ) : (
-          <motion.ul layout className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-            <AnimatePresence mode="popLayout">
-              {products.map((p, i) => (
-                <motion.li
-                  key={p.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.35, delay: i * 0.04 }}
-                >
-                  <ProductCard product={p} priority={i < 3} />
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </motion.ul>
-        )}
-
-        {cat && (
-          <aside className="mt-16 grid gap-4 sm:grid-cols-2">
-            {CATEGORIES.filter((c) => c.slug !== cat.slug).map((c) => (
-              <Link key={c.slug} to={`/products/${c.slug}`} className="group flex items-center gap-4 rounded-xl2 border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-lift">
-                <span className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-                  <Img image={c.image} alt="" sizes="80px" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                </span>
-                <span>
-                  <span className="block font-display text-lg font-semibold text-plum-900">{t(`categories.${c.key}`)}</span>
-                  <span className="block text-sm text-ink-muted">{t(`categories.${c.key}Desc`)}</span>
-                  <span className="mt-1 block text-sm font-semibold text-plum-700">{t('shop.shopNow')} →</span>
-                </span>
-              </Link>
-            ))}
-          </aside>
-        )}
-      </section>
-    </>
+        </form>
+      </Overlay>
+    </section>
   );
 }

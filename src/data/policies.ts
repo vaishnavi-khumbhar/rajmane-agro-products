@@ -1,122 +1,312 @@
 /**
- * DRAFT POLICY TEMPLATES — NOT LEGAL ADVICE.
- * Text in [square brackets] must be confirmed by Rajmane Agro and reviewed by a qualified professional
- * before launch. No delivery times, refund windows or charges have been invented.
+ * RAJMANE AGRO — WEBSITE POLICIES
+ * Structure follows common Indian e-commerce practice. Timelines (48 hours, 5–7 / 1–3 / 7–10 days) were chosen
+ * by the agency — get Rajmane Agro's written approval (and ideally a legal review) before launch, then update
+ * `updated` dates. Policies are shown in English; the site shows a note in Marathi/Hindi.
  */
-export type PolicySlug = 'privacy-policy' | 'terms-and-conditions' | 'shipping-policy' | 'refund-and-cancellation-policy';
+export type PolicySlug = 'privacy-policy' | 'terms-and-conditions' | 'shipping-policy' | 'refund-and-cancellation-policy' | 'disclaimer';
 
 export interface PolicySection {
   heading: string;
-  body: string[];
+  body?: string[];
+  list?: string[];
+  after?: string[];
 }
 export interface Policy {
   slug: PolicySlug;
-  titleKey: 'privacy' | 'terms' | 'shipping' | 'refund';
+  titleKey: 'privacy' | 'terms' | 'shipping' | 'refund' | 'disclaimer';
   updated: string;
   intro: string;
   sections: PolicySection[];
 }
 
 const CO = 'Rajmane Agro Farmers Producers Limited';
+const SITE_URL = 'https://www.rajmaneagroproducts.com';
+const CONTACT = [
+  `${CO}`,
+  'A/P Masur, Tal. Karad, Dist. Satara, Maharashtra – 415106',
+  'Phone: +91 91726 80896',
+];
 
 export const POLICIES: Record<PolicySlug, Policy> = {
   'privacy-policy': {
     slug: 'privacy-policy',
     titleKey: 'privacy',
-    updated: '2026-10-14',
-    intro: `This Privacy Policy explains how ${CO} ("Rajmane Agro", "we") collects and uses information when you use www.rajmaneagroproducts.com.`,
+    updated: '2026-10-15',
+    intro: `At Rajmane Agro Products, your privacy matters to us. This Privacy Policy explains what personal information ${CO} ("Rajmane Agro", "we", "us" or "our") collects when you use ${SITE_URL} (the "Website") or buy our products, how we use it, and how we protect it.`,
     sections: [
       {
         heading: 'Information we collect',
+        body: ['When you place an order, send an enquiry or contact us, we collect the details needed to serve you:'],
+        list: ['Full name', 'Mobile number', 'Email address (if provided)', 'Delivery and billing address, city, state and PIN code', 'Order details — products, quantities and amounts', 'Business name, city and requirement (for bulk or distributor enquiries)'],
+      },
+      {
+        heading: 'Information collected automatically',
         body: [
-          'Details you provide when placing an order or sending an enquiry: name, mobile number, email address, delivery and billing address, and any notes you add.',
-          'Order information such as the products, quantities and amounts in your order.',
-          'Basic technical information such as the page you arrived on and the link or campaign that referred you, used to understand which channels are useful to our customers.',
+          'When you browse the Website, some technical information is collected automatically, such as your device and browser type, IP address, pages visited, time spent on pages and the website or campaign link that brought you to us. This helps us keep the Website secure, fix problems and understand which pages and channels are useful to our customers.',
         ],
       },
       {
+        heading: 'Cookies and browser storage',
+        body: ['We use only what is needed to run the Website and remember your choices:'],
+        list: [
+          'Essential storage — keeps your cart and checkout working.',
+          'Preference storage — remembers your language (English, मराठी or हिन्दी) and your wishlist on this device.',
+          'Payment security — our payment partner may use cookies to process payments securely and prevent fraud.',
+        ],
+        after: ['You can clear or block cookies and site data in your browser settings. Some features, such as the cart, may not work without them.'],
+      },
+      {
         heading: 'How we use your information',
-        body: [
-          'To process, deliver and support your orders.',
-          'To respond to your questions, bulk order and distributor enquiries.',
-          'To improve our website and customer service.',
+        list: [
+          'To process, pack, deliver and support your orders.',
+          'To send order confirmations, delivery updates and respond to your questions.',
+          'To handle bulk-order and distributor enquiries.',
+          'To process payments, refunds and prevent fraud.',
+          'To improve our products, Website and customer service.',
+          'To share offers or product updates — only where you have agreed, and you can opt out at any time.',
+          'To meet legal, tax and accounting requirements.',
         ],
       },
       {
         heading: 'Payments',
         body: [
-          'Online payments will be processed by a third-party payment gateway. We do not see or store your full card, UPI PIN or net-banking credentials.',
+          'Online payments are processed by a secure third-party payment gateway. We do not see or store your full card number, CVV, UPI PIN or net-banking password.',
         ],
       },
       {
-        heading: 'Data stored in your browser',
+        heading: 'When we share information',
+        body: ['We do not sell or rent your personal information. We share it only when needed:'],
+        list: [
+          'With courier and logistics partners — to deliver your order.',
+          'With payment gateways and banks — to process payments and refunds.',
+          'With technology service providers — such as hosting and messaging, who work on our behalf under confidentiality.',
+          'With government or law-enforcement authorities — when required by law.',
+          'With your consent — for any other purpose.',
+        ],
+      },
+      {
+        heading: 'How long we keep your information',
         body: [
-          'Your cart and preferred language are saved in your browser (localStorage) so they remain after you refresh the page. You can clear them at any time from your browser settings.',
+          'We keep personal information only as long as needed for the purposes above, or as required by law (for example, invoices and tax records). After that, it is deleted or anonymised.',
         ],
       },
       {
-        heading: 'Sharing',
+        heading: 'Security',
         body: [
-          'We share information only with service providers needed to fulfil your order (for example payment and courier partners) or when required by law. We do not sell your personal information.',
+          'We use reasonable technical and organisational measures, including secure (HTTPS) connections, to protect your information. However, no method of transmission over the internet or electronic storage is completely secure.',
         ],
       },
       {
-        heading: 'Contact',
-        body: ['For privacy questions, call +91 73871 01619. [Grievance officer name and email to be added.]'],
+        heading: 'Your choices and rights',
+        body: [
+          'You can ask us to access, correct or delete your personal information, or to stop sending you promotional messages, by contacting us using the details below. We may need to keep certain information where the law requires it.',
+        ],
+      },
+      {
+        heading: "Children's privacy",
+        body: ['Our Website is intended for adults. We do not knowingly collect personal information from children under 18. If you believe a child has shared information with us, please contact us and we will delete it.'],
+      },
+      {
+        heading: 'Links to other websites',
+        body: ['Our Website may link to other sites, such as Instagram, Facebook or our payment partner. We are not responsible for the privacy practices of those websites, so please read their policies.'],
+      },
+      {
+        heading: 'Changes to this policy',
+        body: ['We may update this Privacy Policy from time to time. The latest version will always be on this page with the "Last updated" date.'],
+      },
+      {
+        heading: 'Contact and grievance officer',
+        body: ['For any privacy question, request or complaint, please contact:'],
+        list: CONTACT,
       },
     ],
   },
+
   'terms-and-conditions': {
     slug: 'terms-and-conditions',
     titleKey: 'terms',
-    updated: '2026-10-14',
-    intro: `These Terms and Conditions govern your use of www.rajmaneagroproducts.com, operated by ${CO}.`,
+    updated: '2026-10-15',
+    intro: `Please read these Terms and Conditions carefully before using ${SITE_URL} (the "Website"), owned and operated by ${CO} ("Rajmane Agro", "we", "us" or "our"). By using the Website or placing an order, you agree to these Terms.`,
     sections: [
+      {
+        heading: 'Eligibility',
+        body: ['You must be at least 18 years old, or use the Website under the supervision of a parent or guardian, to place an order.'],
+      },
       {
         heading: 'Products and information',
         body: [
-          'We try to display product information and images accurately. Packaging and appearance may vary slightly between batches.',
-          'Prices, pack sizes and availability are shown on the product page and confirmed at checkout.',
+          'We make every effort to display our products, descriptions and prices accurately. Jaggery is a natural product, so colour, texture and shape may vary slightly between batches. Product images are for illustration and packaging may differ slightly from what is shown.',
         ],
       },
       {
-        heading: 'Orders',
+        heading: 'Prices and payment',
         body: [
-          'An order is confirmed only after successful payment verification. We may cancel an order in case of stock unavailability, pricing errors or suspected misuse, and any amount paid will be refunded as per our Refund & Cancellation Policy.',
+          'All prices are in Indian Rupees (INR). Prices, offers and availability may change without notice. The price applicable to your order is the one shown at checkout when you place the order.',
+          'Payments are processed securely through our payment partner. An order is confirmed only after successful payment.',
         ],
       },
       {
-        heading: 'Pricing and payment',
-        body: ['All prices are in Indian Rupees (INR). [Tax treatment to be confirmed.]'],
+        heading: 'Orders and cancellation by us',
+        body: [
+          'We may refuse or cancel an order if a product is out of stock, if there is an error in price or product information, if the delivery address is not serviceable, or if we suspect fraudulent activity. If a paid order is cancelled by us, the full amount will be refunded as per our Refund and Cancellation Policy.',
+        ],
       },
-      { heading: 'Governing law', body: ['These terms are governed by the laws of India. [Jurisdiction to be confirmed.]'] },
-      { heading: 'Contact', body: ['Call +91 73871 01619 for any questions about these terms.'] },
+      {
+        heading: 'Shipping, returns and refunds',
+        body: ['Delivery, returns and refunds are governed by our Shipping Policy and Refund and Cancellation Policy, which form part of these Terms.'],
+      },
+      {
+        heading: 'Use of the Website',
+        body: ['You agree not to misuse the Website — for example, by placing false orders, attempting unauthorised access, or uploading harmful content.'],
+      },
+      {
+        heading: 'Intellectual property',
+        body: [
+          'The Rajmane name, logo, product photographs, banners and content on this Website belong to Rajmane Agro and may not be copied or used without our written permission.',
+        ],
+      },
+      {
+        heading: 'Third-party links',
+        body: ['The Website may contain links to third-party websites or services that we do not control. We are not responsible for their content, policies or practices.'],
+      },
+      {
+        heading: 'Limitation of liability',
+        body: [
+          'To the extent permitted by law, our total liability for any claim relating to an order is limited to the amount you paid for that order. We are not liable for indirect or consequential losses.',
+        ],
+      },
+      {
+        heading: 'Governing law and disputes',
+        body: [
+          'These Terms are governed by the laws of India. If you have a concern, please contact us first so we can try to resolve it. Any dispute will be subject to the jurisdiction of the courts in Maharashtra, India.',
+        ],
+      },
+      {
+        heading: 'Translations',
+        body: ['Where these Terms are shown in another language, the English version will prevail in case of any difference.'],
+      },
+      {
+        heading: 'Changes to these Terms',
+        body: ['We may update these Terms from time to time. Continued use of the Website after changes means you accept the updated Terms.'],
+      },
+      {
+        heading: 'Contact us',
+        list: CONTACT,
+      },
     ],
   },
+
   'shipping-policy': {
     slug: 'shipping-policy',
     titleKey: 'shipping',
-    updated: '2026-10-14',
-    intro: 'This Shipping Policy explains how we deliver orders placed on www.rajmaneagroproducts.com.',
+    updated: '2026-10-15',
+    intro: 'At Rajmane Agro Products, we are committed to delivering your jaggery products safely and on time.',
     sections: [
-      { heading: 'Delivery areas', body: ['[Serviceable locations / PIN codes to be confirmed by Rajmane Agro.]'] },
-      { heading: 'Shipping charges', body: ['[Shipping charges and any free-shipping threshold to be confirmed.] Applicable charges will be shown at checkout before payment.'] },
-      { heading: 'Dispatch and delivery time', body: ['[Dispatch and estimated delivery timelines to be confirmed.] Timelines may vary by location and courier.'] },
-      { heading: 'Tracking', body: ['Once your order is shipped, you can follow it on the Track Order page using your order number and mobile number.'] },
-      { heading: 'Bulk orders', body: ['Delivery for bulk and distributor orders is arranged separately. Please send an enquiry or call +91 73871 01619.'] },
+      {
+        heading: 'Order processing',
+        body: [
+          'All orders are processed within 1–3 working days (excluding Sundays and public holidays). Once your order is dispatched, you will receive the shipment and tracking details.',
+        ],
+      },
+      {
+        heading: 'Delivery time',
+        body: [
+          'Orders are typically delivered within 7–10 business days. Delivery timelines may vary depending on your location and the courier partner’s serviceability, but we always try to get your order to you at the earliest.',
+        ],
+      },
+      {
+        heading: 'Shipping charges',
+        body: ['Any applicable shipping charges are shown at checkout before you make the payment.'],
+      },
+      {
+        heading: 'Tracking your order',
+        body: ['You can follow your order on the Track Order page using your order number and the mobile number used at checkout.'],
+      },
+      {
+        heading: 'Bulk and distributor orders',
+        body: ['Delivery for bulk and distributor orders is arranged separately. Please send an enquiry or call us to discuss timelines.'],
+      },
+      {
+        heading: 'Need help?',
+        body: ['If you have any questions about your shipment, please contact our team:'],
+        list: CONTACT,
+        after: ['Thank you for choosing Rajmane Agro Products.'],
+      },
     ],
   },
+
   'refund-and-cancellation-policy': {
     slug: 'refund-and-cancellation-policy',
     titleKey: 'refund',
-    updated: '2026-10-14',
-    intro: 'This policy explains how cancellations and refunds are handled for orders placed on www.rajmaneagroproducts.com.',
+    updated: '2026-10-15',
+    intro: 'At Rajmane Agro Products, customer satisfaction is important to us. Because our products are food items, we follow strict guidelines on returns and refunds to maintain hygiene and quality.',
     sections: [
-      { heading: 'Cancellations', body: ['[Cancellation window to be confirmed.] Please contact us with your order number as early as possible.'] },
-      { heading: 'Damaged or incorrect items', body: ['If you receive a damaged or incorrect product, contact us [within the period to be confirmed] with your order number and photographs of the product and packaging.'] },
-      { heading: 'Refunds', body: ['Approved refunds are returned to the original payment method. [Processing timeline to be confirmed.]', 'If a payment fails, no order is confirmed. Any amount debited for a failed payment is handled by your bank or the payment gateway.'] },
-      { heading: 'Food products', body: ['[Return conditions for opened food products to be confirmed.]'] },
-      { heading: 'Contact', body: ['Call +91 73871 01619 for help with cancellations and refunds.'] },
+      {
+        heading: 'Opened or used products',
+        body: [
+          'We do not accept returns or give refunds for products that have been opened or used. Please check that the product is what you ordered before opening or using it.',
+        ],
+      },
+      {
+        heading: 'Damaged or incorrect items',
+        body: [
+          'If your item arrives damaged or you received the wrong product, please contact us within 48 hours of delivery with your order number and clear photographs of the product and packaging. We will review your concern and offer a suitable resolution — a replacement or a refund.',
+        ],
+      },
+      {
+        heading: 'Order cancellation',
+        body: [
+          'You can request cancellation before your order is dispatched by contacting us with your order number. Orders that have already been dispatched cannot be cancelled.',
+        ],
+      },
+      {
+        heading: 'Refund timeline',
+        body: ['Approved refunds are credited to your original payment method within 5–7 business days.'],
+      },
+      {
+        heading: 'Failed payments',
+        body: ['If money was deducted but your order was not confirmed, the amount is usually reversed automatically by your bank or the payment gateway. If it is not, please contact us with the payment details.'],
+      },
+      {
+        heading: 'Contact us',
+        body: ['For any questions or help, please contact our team:'],
+        list: CONTACT,
+        after: ['Thank you for your understanding and for choosing Rajmane Agro Products.'],
+      },
+    ],
+  },
+
+  disclaimer: {
+    slug: 'disclaimer',
+    titleKey: 'disclaimer',
+    updated: '2026-10-15',
+    intro: 'The information on this Website is provided for general information purposes only.',
+    sections: [
+      {
+        heading: 'General information',
+        body: [
+          'While we try to keep product descriptions and other content accurate and up to date, Rajmane Agro makes no warranty about the completeness, reliability or suitability of this information.',
+        ],
+      },
+      {
+        heading: 'Not medical advice',
+        body: [
+          'Content on this Website is not medical or nutritional advice. If you have a health condition such as diabetes, or specific dietary needs, please consult a qualified doctor or nutritionist before making changes to your diet.',
+        ],
+      },
+      {
+        heading: 'Prices and availability',
+        body: ['Prices, offers and product availability may change without notice.'],
+      },
+      {
+        heading: 'Product images',
+        body: ['Images are for illustration. Jaggery is a natural product, so the actual product and packaging may vary slightly from the pictures.'],
+      },
+      {
+        heading: 'Agreement',
+        body: ['By using this Website, you agree to our Terms and Conditions and Privacy Policy.'],
+      },
     ],
   },
 };
